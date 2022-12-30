@@ -39,11 +39,11 @@ jobs:
           TO_BRANCH: "hml-staging"
           PULL_REQUEST_TITLE: "Sync: ${{ github.event.pull_request.title }}"
       
-      - name: Automatic rebase
-        uses: cirrus-actions/rebase@1.7
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-          PR_NUMBER:  ${{ steps.pull.outputs.PULL_REQUEST_NUMBER }}
+      #- name: Automatic rebase
+      #  uses: cirrus-actions/rebase@1.7
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.PAT }}
+      #    PR_NUMBER:  ${{ steps.pull.outputs.PULL_REQUEST_NUMBER }}
           
       - name: Add label to auto-merge
         uses: actions-ecosystem/action-add-labels@v1
