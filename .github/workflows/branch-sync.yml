@@ -1,0 +1,70 @@
+# File: .github/workflows/repo-sync.yml
+name: 'REPO-SYNC'
+
+env:
+    branchName: "hml-prstg${{ github.run_id }}"
+
+on:
+  pull_request:
+   branches:
+      - hml-prstg
+   types: [closed]
+  workflow_dispatch:
+
+jobs:
+  sync-branches:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    name: Syncing branches
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+            
+      - name: Create new branch
+        run: git checkout -b "hml-prstg-${{ github.run_id }}"
+        
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+          git config --global --add safe.directory "*"
+        
+      - name: Push new branch
+        run: git push origin "hml-prstg-${{ github.run_id }}"
+      
+      - name: Set up Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          
+      - name: Opening pull request
+        id: pull
+        uses: tretuna/sync-branches@1.4.0
+        with:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          FROM_BRANCH: "hml-prstg-${{ github.run_id }}" 
+          TO_BRANCH: "hml-staging"
+          PULL_REQUEST_TITLE: "Sync: ${{ github.event.pull_request.title }}"
+      
+      - name: Automatic rebase
+        uses: cirrus-actions/rebase@1.7
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+          PR_NUMBER:  ${{ steps.pull.outputs.PULL_REQUEST_NUMBER }}
+          
+      - name: Add label to auto-merge
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: automerge
+          number: ${{ steps.pull.outputs.PULL_REQUEST_NUMBER }}
+ 
+      - name: Automatic Merge
+        uses: "pascalgn/automerge-action@v0.15.5"
+        env:
+          GITHUB_TOKEN: "${{ secrets.PAT }}"
+          MERGE_METHOD: "merge"
+          MERGE_RETRIES: "6"
+          MERGE_RETRY_SLEEP: "10000"
+          PULL_REQUEST: "${{ steps.pull.outputs.PULL_REQUEST_NUMBER }}"
