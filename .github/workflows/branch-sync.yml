@@ -1,9 +1,6 @@
 # File: .github/workflows/repo-sync.yml
 name: 'REPO-SYNC'
 
-env:
-    branchName: "hml-prstg${{ github.run_id }}"
-
 on:
   pull_request:
    branches:
@@ -22,18 +19,12 @@ jobs:
         with:
             fetch-depth: 0
             
-      - name: Create new branch
-        run: git checkout -b "hml-prstg-${{ github.run_id }}"
-        
       - name: Initialize mandatory git config
         run: |
           git config user.name "GitHub Actions"
           git config user.email noreply@github.com
           git config --global --add safe.directory "*"
         
-      - name: Push new branch
-        run: git push origin "hml-prstg-${{ github.run_id }}"
-      
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
@@ -44,7 +35,7 @@ jobs:
         uses: tretuna/sync-branches@1.4.0
         with:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          FROM_BRANCH: "hml-prstg-${{ github.run_id }}" 
+          FROM_BRANCH: "hml-prstg" 
           TO_BRANCH: "hml-staging"
           PULL_REQUEST_TITLE: "Sync: ${{ github.event.pull_request.title }}"
       
